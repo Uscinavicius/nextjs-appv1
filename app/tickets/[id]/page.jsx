@@ -1,11 +1,31 @@
 import React from "react";
+import { notFound } from "next/navigation"
+
+
+export async function getStaticParams() {
+  const res = await fetch("http://localhost:4000/tickets");
+  const tickets = await res.json();
+
+  const paths = tickets.map((ticket) => ({
+    params: { id: ticket.id.toString() },
+  }));
+
+  return { paths, fallback: false };
+}
 
 async function getTickets(id) {
+
+  //simulate a slow network
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  
   const res = await fetch("http://localhost:4000/tickets/" + id, {
     next: {
-      revalidate: 0,
+      revalidate: 60,
     },
   });
+  if (!res.ok) {
+    notFound();
+  }
   return res.json();
 }
 
